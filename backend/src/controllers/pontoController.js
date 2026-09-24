@@ -4,8 +4,14 @@ const pool = require('../config/db');
 exports.registrarChegada = async (req, res) => {
   const { id } = req.params;
   try {
-    // A função NOW() pega a data e hora exata do servidor MySQL
-    await pool.query('UPDATE Ponto SET data_hora_chegada = NOW() WHERE id = ?', [id]);
+    // A função NOW() pega a data e hora exata do servidor PostgreSQL
+    const resultado = await pool.query(
+      'UPDATE Ponto SET data_hora_chegada = NOW() WHERE id = $1',
+      [id]
+    );
+    if (resultado.rowCount === 0) {
+      return res.status(404).json({ error: 'Ponto não encontrado.' });
+    }
     res.json({ message: 'Chegada registrada com sucesso no banco de dados.' });
   } catch (error) {
     console.error('Erro ao registrar chegada:', error);
@@ -18,11 +24,17 @@ exports.registrarSaida = async (req, res) => {
   const { id } = req.params;
   try {
     // 1. Atualiza o horário de saída
-    await pool.query('UPDATE Ponto SET data_hora_saida = NOW() WHERE id = ?', [id]);
+    const resultado = await pool.query(
+      'UPDATE Ponto SET data_hora_saida = NOW() WHERE id = $1',
+      [id]
+    );
+    if (resultado.rowCount === 0) {
+      return res.status(404).json({ error: 'Ponto não encontrado.' });
+    }
 
     // 2. Busca os dados do ponto para calcular o tempo
-    const [linhas] = await pool.query(
-      'SELECT roteiro_id, ordem_roteiro, data_hora_chegada, data_hora_saida FROM Ponto WHERE id = ?', 
+    const { rows: linhas } = await pool.query(
+      'SELECT roteiro_id, ordem_roteiro, data_hora_chegada, data_hora_saida FROM Ponto WHERE id = $1',
       [id]
     );
     const ponto = linhas[0];
@@ -38,7 +50,10 @@ exports.registrarSaida = async (req, res) => {
       const diffMinutos = Math.round((saida - chegada) / 60000); 
 
       // Salva o tempo calculado no ponto específico
-      await pool.query('UPDATE Ponto SET tempo_parado_calculado = ? WHERE id = ?', [diffMinutos, id]);
+      await pool.query(
+        'UPDATE Ponto SET tempo_parado_calculado = $1 WHERE id = $2',
+        [diffMinutos, id]
+      );
 
       // Regra RN03: Atualiza a soma total do tempo parado no roteiro
       await pool.query(`
@@ -46,9 +61,9 @@ exports.registrarSaida = async (req, res) => {
         SET tempo_total_parado = (
           SELECT COALESCE(SUM(tempo_parado_calculado), 0) 
           FROM Ponto 
-          WHERE roteiro_id = ?
+          WHERE roteiro_id = $1
         )
-        WHERE id = ?`, 
+        WHERE id = $2`,
         [ponto.roteiro_id, ponto.roteiro_id]
       );
     }

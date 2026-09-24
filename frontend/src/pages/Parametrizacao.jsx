@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiUrl } from '../config/api';
 
 export default function Parametrizacao() {
   const [formData, setFormData] = useState({
@@ -11,7 +12,7 @@ export default function Parametrizacao() {
   const [buscando, setBuscando] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:3333/api/parametros')
+    fetch(apiUrl('/api/parametros'))
       .then(res => res.json())
       .then(data => {
         setFormData({
@@ -34,7 +35,7 @@ export default function Parametrizacao() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3333/api/parametros', {
+      const response = await fetch(apiUrl('/api/parametros'), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

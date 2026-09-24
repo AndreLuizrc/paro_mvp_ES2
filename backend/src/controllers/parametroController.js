@@ -2,7 +2,7 @@ const pool = require('../config/db');
 
 exports.getParametros = async (req, res) => {
   try {
-    const [parametros] = await pool.query('SELECT * FROM Parametro LIMIT 1');
+    const { rows: parametros } = await pool.query('SELECT * FROM Parametro LIMIT 1');
     if (parametros.length === 0) {
       return res.status(404).json({ error: 'Parâmetros não encontrados.' });
     }
@@ -20,12 +20,12 @@ exports.updateParametros = async (req, res) => {
     // Atualizamos a primeira linha (presumindo id = 1)
     await pool.query(
       `UPDATE Parametro SET 
-        valor_combustivel = ?, 
-        custo_por_km = ?, 
-        km_litro_veiculo = ?, 
-        jornada_padrao = ? 
+        valor_combustivel = $1,
+        custo_por_km = $2,
+        km_litro_veiculo = $3,
+        jornada_padrao = $4
        WHERE id = 1`,
-      [valor_combustivel, custo_por_km, km_litro_veiculo, jornada_padrao || 8]
+      [valor_combustivel, custo_por_km, km_litro_veiculo, jornada_padrao ?? 8]
     );
     res.json({ message: 'Parâmetros atualizados com sucesso!' });
   } catch (error) {

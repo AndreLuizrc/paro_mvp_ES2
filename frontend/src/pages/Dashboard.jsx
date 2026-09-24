@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { apiUrl } from '../config/api';
 
 export default function Dashboard() {
   const [dadosGrafico, setDadosGrafico] = useState([]);
@@ -15,7 +16,7 @@ export default function Dashboard() {
 
   // Busca a lista de motoristas apenas uma vez quando a tela abre
   useEffect(() => {
-    fetch('http://localhost:3333/api/motoristas')
+    fetch(apiUrl('/api/motoristas'))
       .then(res => res.json())
       .then(data => setListaMotoristas(data))
       .catch(err => console.error('Erro ao buscar motoristas:', err));
@@ -26,8 +27,8 @@ export default function Dashboard() {
     setLoading(true);
     try {
       const url = filtroId 
-        ? `http://localhost:3333/api/dashboard/resumo?motorista_id=${filtroId}`
-        : 'http://localhost:3333/api/dashboard/resumo';
+        ? apiUrl(`/api/dashboard/resumo?motorista_id=${encodeURIComponent(filtroId)}`)
+        : apiUrl('/api/dashboard/resumo');
 
       const response = await fetch(url);
       if (response.ok) {
@@ -53,7 +54,7 @@ export default function Dashboard() {
     if (!infoRoteiro) return alert('Nenhum roteiro para calcular.');
     setCalculando(true);
     try {
-      const response = await fetch(`http://localhost:3333/api/roteiros/${infoRoteiro.id}/calcular-custo`, { method: 'PUT' });
+      const response = await fetch(apiUrl(`/api/roteiros/${infoRoteiro.id}/calcular-custo`), { method: 'PUT' });
       if (response.ok) {
         alert('Custo recalculado com base na distância e combustível!');
         await carregarDados(); 

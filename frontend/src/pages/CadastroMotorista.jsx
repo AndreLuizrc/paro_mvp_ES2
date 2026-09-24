@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { apiUrl } from '../config/api';
 
 export default function CadastroMotorista() {
   const [formData, setFormData] = useState({
@@ -19,7 +20,7 @@ export default function CadastroMotorista() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3333/api/motoristas', {
+      const response = await fetch(apiUrl('/api/motoristas'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

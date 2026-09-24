@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiUrl } from '../config/api';
 
 export default function MontagemRoteiro() {
   const [motoristas, setMotoristas] = useState([]);
@@ -14,7 +15,7 @@ export default function MontagemRoteiro() {
 
   // Busca a lista de motoristas para popular o Select
   useEffect(() => {
-    fetch('http://localhost:3333/api/motoristas')
+    fetch(apiUrl('/api/motoristas'))
       .then(res => res.json())
       .then(data => setMotoristas(data))
       .catch(err => console.error('Erro ao buscar motoristas:', err));
@@ -42,7 +43,7 @@ export default function MontagemRoteiro() {
     
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3333/api/roteiros', {
+      const response = await fetch(apiUrl('/api/roteiros'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

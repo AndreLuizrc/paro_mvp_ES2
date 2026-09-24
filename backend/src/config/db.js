@@ -1,22 +1,28 @@
-const mysql = require('mysql2/promise');
+const { Pool } = require('pg');
 require('dotenv').config();
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+const useSsl = process.env.DB_SSL === 'true';
+
+const connectionConfig = process.env.DATABASE_URL
+  ? { connectionString: process.env.DATABASE_URL }
+  : {
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT || 5432),
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME
+    };
+
+const pool = new Pool({
+  ...connectionConfig,
+  ssl: useSsl ? { rejectUnauthorized: false } : false,
+  max: Number(process.env.DB_POOL_MAX || 5),
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000
 });
 
-// Teste simples ao iniciar
-pool.getConnection()
-  .then(conn => {
-    console.log('Conectado ao MySQL com sucesso!');
-    conn.release();
-  })
-  .catch(err => console.error('Erro ao conectar no MySQL:', err));
+pool.on('error', (error) => {
+  console.error('Erro inesperado no pool do PostgreSQL:', error);
+});
 
 module.exports = pool;
